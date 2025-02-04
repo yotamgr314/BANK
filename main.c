@@ -55,32 +55,27 @@ void read_string(char *buffer, int size) {
     buffer[strcspn(buffer, "\n")] = '\0'; // Remove newline character if present
 }
 
-// הוספת לקוח
 void add_customer() {
     if (num_customers >= MAX_CUSTOMERS) {
         printf("Cannot add more customers!\n");
         return;
     }
 
-    char first_name[50], last_name[50], id[15];
-
     printf("Enter first name: ");
-    read_string(first_name, sizeof(first_name));
+    read_string(customers[num_customers].first_name, sizeof(customers[num_customers].first_name));
 
     printf("Enter last name: ");
-    read_string(last_name, sizeof(last_name));
+    read_string(customers[num_customers].last_name, sizeof(customers[num_customers].last_name));
 
     printf("Enter unique ID number: ");
-    read_string(id, sizeof(id));
+    read_string(customers[num_customers].id, sizeof(customers[num_customers].id));
 
-    strcpy(customers[num_customers].first_name, first_name);
-    strcpy(customers[num_customers].last_name, last_name);
-    strcpy(customers[num_customers].id, id);
     customers[num_customers].num_accounts = 0;
     num_customers++;
 
-    printf("Customer added successfully! ID: %s\n", id);
+    printf("Customer added successfully! ID: %s\n", customers[num_customers - 1].id);
 }
+
 
 // יצירת חשבון בנק
 void create_account() {
@@ -283,8 +278,6 @@ void display_account_details() {
 }
 
 
-
-
 void display_all_customers() {
     if (num_customers == 0) {
         printf("\nNo customers found in the system.\n");
@@ -292,16 +285,17 @@ void display_all_customers() {
     }
 
     printf("\n--- List of Bank Customers ---\n");
-    printf("%-20s %-15s %-10s\n", "Full Name", "ID", "Accounts");
-    printf("-------------------------------------------\n");
+    printf("Full Name\t\tID\t\tAccounts\n");
+    printf("------------------------------------------------------------\n");
 
     for (int i = 0; i < num_customers; i++) {
-        printf("%-20s %-15s %-10d\n",
+        printf("%s %s\t\t%s\t\t%d\n",
                customers[i].first_name,
+               customers[i].last_name,
                customers[i].id,
                customers[i].num_accounts);
     }
-    printf("-------------------------------------------\n");
+    printf("------------------------------------------------------------\n");
 }
 
 void menu_display() {
