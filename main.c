@@ -298,6 +298,27 @@ void display_all_customers() {
     printf("------------------------------------------------------------\n");
 }
 
+
+void display_all_accounts() {
+    if (num_accounts == 0) {
+        printf("\nNo accounts found in the system.\n");
+        return;
+    }
+
+    printf("\n--- List of Bank Accounts ---\n");
+    printf("Account Number\tOwner ID\t\tBalance\n");
+    printf("------------------------------------------------------------\n");
+
+    for (int i = 0; i < num_accounts; i++) {
+        printf("%d\t\t%s\t\t%.2f\n",
+               accounts[i].account_number,
+               accounts[i].owner_id,
+               accounts[i].balance);
+    }
+    printf("------------------------------------------------------------\n");
+}
+
+
 void menu_display() {
     printf("\n Welcome to the Bank System\n");
     printf(" 1. Add a person to the bank\n");
@@ -305,8 +326,9 @@ void menu_display() {
     printf(" 3. Deposit money\n");
     printf(" 4. Withdraw money\n");
     printf(" 5. View account details\n");
-    printf(" 6. View all customers\n"); // נוספה אופציה חדשה
-    printf(" 7. Exit\n");
+    printf(" 6. View all customers\n");
+    printf(" 7. View all accounts\n"); // אופציה חדשה
+    printf(" 8. Exit\n");
 }
 
 
@@ -343,14 +365,17 @@ int main() {
                 display_account_details();
                 break;
             case 6:
-                display_all_customers(); // קריאה לפונקציה החדשה
+                display_all_customers();
                 break;
             case 7:
+                display_all_accounts(); // קריאה לפונקציה החדשה
+                break;
+            case 8:
                 printf("Exiting the bank system. Goodbye!\n");
                 run = 0;
                 break;
             default:
-                printf("Invalid choice! Please enter a number between 1-7.\n");
+                printf("Invalid choice! Please enter a number between 1-8.\n");
         }
     }
     return 0;
