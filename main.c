@@ -47,13 +47,12 @@ Date create_date(int day, int month, int year) {
     return date;
 }
 
-// קריאה בטוחה של מחרוזת
 void read_string(char *buffer, int size) {
     if (fgets(buffer, size, stdin) == NULL) {
-        buffer[0] = '\0';
+        buffer[0] = '\0';  // Set empty string on error
         return;
     }
-    buffer[strcspn(buffer, "\n")] = 0; // מחיקת תו ירידת שורה
+    buffer[strcspn(buffer, "\n")] = '\0'; // Remove newline character if present
 }
 
 // הוספת לקוח
@@ -174,7 +173,6 @@ void deposit() {
 
 
 
-// פונקציה למשיכת כסף
 void withdraw() {
     int account_number;
     double amount;
@@ -240,17 +238,85 @@ void withdraw() {
 }
 
 
+
+void display_account_details() {
+    int account_number;
+
+    printf("Enter account number: ");
+    if (scanf("%d", &account_number) != 1) {
+        printf("Invalid account number input!\n");
+        while (getchar() != '\n'); // ניקוי buffer
+        return;
+    }
+    while (getchar() != '\n'); // ניקוי buffer אחרי scanf
+
+    if (account_number < 1 || account_number > num_accounts) {
+        printf("Account not found!\n");
+        return;
+    }
+
+    BankAccount *acc = &accounts[account_number - 1];
+
+    printf("\n--- Account Details ---\n");
+    printf("Account Number: %d\n", acc->account_number);
+    printf("Owner ID: %s\n", acc->owner_id);
+    printf("Current Balance: %.2f\n", acc->balance);
+    printf("Number of Transactions: %d\n", acc->num_transactions);
+
+    if (acc->num_transactions > 0) {
+        printf("\nTransaction History:\n");
+        printf("%-12s %-10s %-40s %-12s\n", "Date", "Amount", "Description", "Balance After");
+        printf("-------------------------------------------------------------\n");
+        for (int i = 0; i < acc->num_transactions; i++) {
+            printf("%02d/%02d/%04d %-10.2f %-40s %-12.2f\n",
+                   acc->transactions[i].date.day,
+                   acc->transactions[i].date.month,
+                   acc->transactions[i].date.year,
+                   acc->transactions[i].amount,
+                   acc->transactions[i].description,
+                   acc->transactions[i].balance_after);
+        }
+    } else {
+        printf("No transactions found for this account.\n");
+    }
+    printf("----------------------------\n");
+}
+
+
+
+
+void display_all_customers() {
+    if (num_customers == 0) {
+        printf("\nNo customers found in the system.\n");
+        return;
+    }
+
+    printf("\n--- List of Bank Customers ---\n");
+    printf("%-20s %-15s %-10s\n", "Full Name", "ID", "Accounts");
+    printf("-------------------------------------------\n");
+
+    for (int i = 0; i < num_customers; i++) {
+        printf("%-20s %-15s %-10d\n",
+               customers[i].first_name,
+               customers[i].id,
+               customers[i].num_accounts);
+    }
+    printf("-------------------------------------------\n");
+}
+
 void menu_display() {
     printf("\n Welcome to the Bank System\n");
     printf(" 1. Add a person to the bank\n");
     printf(" 2. Open a bank account\n");
     printf(" 3. Deposit money\n");
-    printf(" 4. Withdraw money\n"); 
-    printf(" 5. Exit\n");
+    printf(" 4. Withdraw money\n");
+    printf(" 5. View account details\n");
+    printf(" 6. View all customers\n"); // נוספה אופציה חדשה
+    printf(" 7. Exit\n");
 }
 
 
-// פונקציה ראשית
+
 int main() {
     int user_choice;
     int run = 1;
@@ -277,14 +343,20 @@ int main() {
                 deposit();
                 break;
             case 4:
-                withdraw(); 
+                withdraw();
                 break;
             case 5:
+                display_account_details();
+                break;
+            case 6:
+                display_all_customers(); // קריאה לפונקציה החדשה
+                break;
+            case 7:
                 printf("Exiting the bank system. Goodbye!\n");
                 run = 0;
                 break;
             default:
-                printf("Invalid choice! Please enter a number between 1-5.\n");
+                printf("Invalid choice! Please enter a number between 1-7.\n");
         }
     }
     return 0;
