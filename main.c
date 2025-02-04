@@ -77,7 +77,6 @@ void add_customer() {
 }
 
 
-// יצירת חשבון בנק
 void create_account() {
     if (num_accounts >= MAX_ACCOUNTS) {
         printf("Cannot add more accounts!\n");
@@ -101,17 +100,25 @@ void create_account() {
         return;
     }
 
+    if (customers[customer_index].num_accounts >= MAX_ACCOUNTS) {
+        printf("This customer has reached the maximum number of accounts!\n");
+        return;
+    }
+
+    // Create new bank account
     accounts[num_accounts].account_number = num_accounts + 1;
     strcpy(accounts[num_accounts].owner_id, owner_id);
     accounts[num_accounts].balance = 0;
     accounts[num_accounts].num_transactions = 0;
+
+    // Add account to the customer’s list of accounts
     customers[customer_index].accounts[customers[customer_index].num_accounts++] = num_accounts + 1;
+    
     num_accounts++;
 
     printf("Bank account created successfully! Account number: %d\n", num_accounts);
 }
 
-// הפקדת כסף
 void deposit() {
     int account_number;
     double amount;
@@ -121,23 +128,37 @@ void deposit() {
     printf("Enter account number: ");
     if (scanf("%d", &account_number) != 1) {
         printf("Invalid account number!\n");
-        while (getchar() != '\n'); // ניקוי buffer
+        while (getchar() != '\n');
         return;
     }
-    while (getchar() != '\n'); // ניקוי buffer אחרי scanf
+    while (getchar() != '\n');
 
     if (account_number < 1 || account_number > num_accounts) {
         printf("Invalid account number!\n");
         return;
     }
 
-    printf("Enter amount to deposit: ");
-    if (scanf("%lf", &amount) != 1) {
-        printf("Invalid amount!\n");
-        while (getchar() != '\n'); // ניקוי buffer
+    BankAccount *acc = &accounts[account_number - 1];
+
+    // ספירת הפקדות בלבד
+    int deposit_count = 0;
+    for (int i = 0; i < acc->num_transactions; i++) {
+        if (acc->transactions[i].amount > 0) {
+            deposit_count++;
+        }
+    }
+    if (deposit_count >= 250) {
+        printf("Deposit limit reached! You cannot make more than 250 deposits.\n");
         return;
     }
-    while (getchar() != '\n'); // ניקוי buffer אחרי scanf
+
+    printf("Enter amount to deposit: ");
+    if (scanf("%lf", &amount) != 1 || amount <= 0) {
+        printf("Invalid amount! Must be greater than zero.\n");
+        while (getchar() != '\n');
+        return;
+    }
+    while (getchar() != '\n');
 
     printf("Enter description: ");
     read_string(description, sizeof(description));
@@ -145,14 +166,7 @@ void deposit() {
     printf("Enter transaction date (DD MM YYYY): ");
     if (scanf("%d %d %d", &day, &month, &year) != 3) {
         printf("Invalid date input!\n");
-        while (getchar() != '\n'); // ניקוי buffer
-        return;
-    }
-
-    BankAccount *acc = &accounts[account_number - 1];
-
-    if (acc->num_transactions >= MAX_TRANSACTIONS) {
-        printf("Cannot add more transactions!\n");
+        while (getchar() != '\n');
         return;
     }
 
@@ -163,9 +177,8 @@ void deposit() {
     acc->transactions[acc->num_transactions].balance_after = acc->balance;
     acc->num_transactions++;
 
-    printf("Deposit successful!\n");
+    printf("Deposit successful! New balance: %.2f\n", acc->balance);
 }
-
 
 
 void withdraw() {
@@ -177,30 +190,37 @@ void withdraw() {
     printf("Enter account number: ");
     if (scanf("%d", &account_number) != 1) {
         printf("Invalid account number!\n");
-        while (getchar() != '\n'); // ניקוי buffer
+        while (getchar() != '\n');
         return;
     }
-    while (getchar() != '\n'); // ניקוי buffer אחרי scanf
+    while (getchar() != '\n');
 
     if (account_number < 1 || account_number > num_accounts) {
         printf("Invalid account number!\n");
         return;
     }
 
-    printf("Enter amount to withdraw: ");
-    if (scanf("%lf", &amount) != 1) {
-        printf("Invalid amount!\n");
-        while (getchar() != '\n'); // ניקוי buffer
-        return;
-    }
-    while (getchar() != '\n'); // ניקוי buffer אחרי scanf
-
-    if (amount <= 0) {
-        printf("Withdrawal amount must be greater than zero!\n");
-        return;
-    }
-
     BankAccount *acc = &accounts[account_number - 1];
+
+    // ספירת משיכות בלבד
+    int withdraw_count = 0;
+    for (int i = 0; i < acc->num_transactions; i++) {
+        if (acc->transactions[i].amount < 0) {
+            withdraw_count++;
+        }
+    }
+    if (withdraw_count >= 750) {
+        printf("Withdrawal limit reached! You cannot make more than 750 withdrawals.\n");
+        return;
+    }
+
+    printf("Enter amount to withdraw: ");
+    if (scanf("%lf", &amount) != 1 || amount <= 0) {
+        printf("Invalid amount! Must be greater than zero.\n");
+        while (getchar() != '\n');
+        return;
+    }
+    while (getchar() != '\n');
 
     if (acc->balance < amount) {
         printf("Insufficient balance! Current balance: %.2f\n", acc->balance);
@@ -213,25 +233,19 @@ void withdraw() {
     printf("Enter transaction date (DD MM YYYY): ");
     if (scanf("%d %d %d", &day, &month, &year) != 3) {
         printf("Invalid date input!\n");
-        while (getchar() != '\n'); // ניקוי buffer
-        return;
-    }
-
-    if (acc->num_transactions >= MAX_TRANSACTIONS) {
-        printf("Cannot add more transactions!\n");
+        while (getchar() != '\n');
         return;
     }
 
     acc->balance -= amount;
     acc->transactions[acc->num_transactions].date = create_date(day, month, year);
-    acc->transactions[acc->num_transactions].amount = -amount;  // סכום שלילי מייצג משיכה
+    acc->transactions[acc->num_transactions].amount = -amount;
     strcpy(acc->transactions[acc->num_transactions].description, description);
     acc->transactions[acc->num_transactions].balance_after = acc->balance;
     acc->num_transactions++;
 
     printf("Withdrawal successful! New balance: %.2f\n", acc->balance);
 }
-
 
 
 void display_account_details() {
