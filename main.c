@@ -288,7 +288,7 @@ void display_account_details() {
     if (acc->num_transactions > 0) {
         printf("\nTransaction History:\n");
         printf("%-12s %-10s %-40s %-12s\n", "Date", "Amount", "Description", "Balance After");
-        printf("-------------------------------------------------------------\n");
+        printf("----------------------------------------------------------------------------------\n");
         for (int i = 0; i < acc->num_transactions; i++) {
             printf("%02d/%02d/%04d %-10.2f %-40s %-12.2f\n",
                    acc->transactions[i].date.day,
@@ -301,7 +301,7 @@ void display_account_details() {
     } else {
         printf("No transactions found for this account.\n");
     }
-    printf("----------------------------\n");
+    printf("----------------------------------------------------------------------------------\n");
 }
 
 
