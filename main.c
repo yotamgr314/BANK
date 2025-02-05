@@ -4,7 +4,9 @@
 
 #define MAX_CUSTOMERS 100
 #define MAX_ACCOUNTS 250
-#define MAX_TRANSACTIONS 750
+#define MAX_DEPOSITS 250
+#define MAX_WITHDRAWALS 750
+#define MAX_TRANSACTIONS (MAX_DEPOSITS + MAX_WITHDRAWALS)
 #define FIRST_NAME_SIZE 20
 #define LAST_NAME_SIZE 20
 
@@ -150,15 +152,15 @@ void withdraw() {
 
     struct BankAccount *acc = &accounts[account_number - 1];
 
-    // ספירת משיכות בלבד
+    // ספירת משיכות
     int withdraw_count = 0;
     for (int i = 0; i < acc->num_transactions; i++) {
         if (acc->transactions[i].amount < 0) {
             withdraw_count++;
         }
     }
-    if (withdraw_count >= 750) {
-        printf("Withdrawal limit reached! You cannot make more than 750 withdrawals.\n");
+    if (withdraw_count >= MAX_WITHDRAWALS) {
+        printf("Withdrawal limit reached! You cannot make more than %d withdrawals.\n", MAX_WITHDRAWALS);
         return;
     }
 
@@ -215,17 +217,17 @@ void deposit() {
         return;
     }
 
-   struct BankAccount *acc = &accounts[account_number - 1];
+    struct BankAccount *acc = &accounts[account_number - 1];
 
-    // ספירת הפקדות בלבד
+    // ספירת הפקדות
     int deposit_count = 0;
     for (int i = 0; i < acc->num_transactions; i++) {
         if (acc->transactions[i].amount > 0) {
             deposit_count++;
         }
     }
-    if (deposit_count >= 250) {
-        printf("Deposit limit reached! You cannot make more than 250 deposits.\n");
+    if (deposit_count >= MAX_DEPOSITS) {
+        printf("Deposit limit reached! You cannot make more than %d deposits.\n", MAX_DEPOSITS);
         return;
     }
 
@@ -256,7 +258,6 @@ void deposit() {
 
     printf("Deposit successful! New balance: %.2f\n", acc->balance);
 }
-
 
 
 
