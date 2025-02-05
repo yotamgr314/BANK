@@ -274,6 +274,8 @@ void deposit() {
 
 void display_account_details() {
     int account_number;
+    struct Date start_date, end_date;
+    double opening_balance = 0.0;
 
     printf("Enter account number: ");
     if (scanf("%d", &account_number) != 1) {
@@ -281,39 +283,75 @@ void display_account_details() {
         while (getchar() != '\n'); // ניקוי buffer
         return;
     }
-    while (getchar() != '\n'); // ניקוי buffer אחרי scanf
+    while (getchar() != '\n');
 
     if (account_number < 1 || account_number > num_accounts) {
         printf("Account not found!\n");
         return;
     }
 
-   struct BankAccount *acc = &accounts[account_number - 1];
+    struct BankAccount *acc = &accounts[account_number - 1];
 
-    printf("\n--- Account Details ---\n");
+    printf("Enter start date (DD MM YYYY): ");
+    if (scanf("%d %d %d", &start_date.day, &start_date.month, &start_date.year) != 3) {
+        printf("Invalid date input!\n");
+        while (getchar() != '\n');
+        return;
+    }
+
+    printf("Enter end date (DD MM YYYY): ");
+    if (scanf("%d %d %d", &end_date.day, &end_date.month, &end_date.year) != 3) {
+        printf("Invalid date input!\n");
+        while (getchar() != '\n');
+        return;
+    }
+
+    // חישוב יתרת הפתיחה הנכונה
+    for (int i = 0; i < acc->num_transactions; i++) {
+        struct Transaction *t = &acc->transactions[i];
+        if (t->date.year < start_date.year ||
+            (t->date.year == start_date.year && t->date.month < start_date.month) ||
+            (t->date.year == start_date.year && t->date.month == start_date.month && t->date.day < start_date.day)) {
+            opening_balance = t->balance_after;
+        }
+    }
+
+    printf("\n--- Account Statement ---\n");
     printf("Account Number: %d\n", acc->account_number);
     printf("Owner ID: %d\n", acc->owner_id);
-    printf("Current Balance: %.2f\n", acc->balance);
-    printf("Number of Transactions: %d\n", acc->num_transactions);
+    printf("Statement Period: %02d/%02d/%04d - %02d/%02d/%04d\n", 
+           start_date.day, start_date.month, start_date.year, 
+           end_date.day, end_date.month, end_date.year);
+    printf("Opening Balance: %.2f\n", opening_balance);
+    printf("\nDate\t\tDeposits\tWithdrawals\tBalance After\n");
+    printf("--------------------------------------------------------------\n");
 
-    if (acc->num_transactions > 0) {
-        printf("\nTransaction History:\n");
-        printf("%-12s %-10s %-40s %-12s\n", "Date", "Amount", "Description", "Balance After");
-        printf("----------------------------------------------------------------------------------\n");
-        for (int i = 0; i < acc->num_transactions; i++) {
-            printf("%02d/%02d/%04d %-10.2f %-40s %-12.2f\n",
-                   acc->transactions[i].date.day,
-                   acc->transactions[i].date.month,
-                   acc->transactions[i].date.year,
-                   acc->transactions[i].amount,
-                   acc->transactions[i].description,
-                   acc->transactions[i].balance_after);
+    double current_balance = opening_balance;
+
+    for (int i = 0; i < acc->num_transactions; i++) {
+        struct Transaction *t = &acc->transactions[i];
+
+        if ((t->date.year > start_date.year ||
+            (t->date.year == start_date.year && t->date.month > start_date.month) ||
+            (t->date.year == start_date.year && t->date.month == start_date.month && t->date.day >= start_date.day)) &&
+            (t->date.year < end_date.year ||
+            (t->date.year == end_date.year && t->date.month < end_date.month) ||
+            (t->date.year == end_date.year && t->date.month == end_date.month && t->date.day <= end_date.day))) {
+
+            current_balance = t->balance_after;
+            printf("%02d/%02d/%04d\t", t->date.day, t->date.month, t->date.year);
+            if (t->amount > 0) {
+                printf("%.2f\t\t-\t\t%.2f\n", t->amount, current_balance);
+            } else {
+                printf("-\t\t%.2f\t\t%.2f\n", -t->amount, current_balance);
+            }
         }
-    } else {
-        printf("No transactions found for this account.\n");
     }
-    printf("----------------------------------------------------------------------------------\n");
+
+    printf("--------------------------------------------------------------\n");
+    printf("Closing Balance: %.2f\n", current_balance);
 }
+
 
 
 
@@ -325,18 +363,20 @@ void display_all_customers() {
     }
 
     printf("\n--- List of Bank Customers ---\n");
-    printf("Full Name\t\tID\t\tAccounts\n");
+    printf("Full Name\t\tID\t\tAccounts (Balance)\n");
     printf("------------------------------------------------------------\n");
 
     for (int i = 0; i < num_customers; i++) {
-        printf("%s %s\t\t%d\t\t%d\n",
-               customers[i].first_name,
-               customers[i].last_name,
-               customers[i].id,
-               customers[i].num_accounts);
+        printf("%s %s\t\t%d\t\t", customers[i].first_name, customers[i].last_name, customers[i].id);
+        for (int j = 0; j < customers[i].num_accounts; j++) {
+            int acc_index = customers[i].accounts[j] - 1;
+            printf("[%d: %.2f] ", accounts[acc_index].account_number, accounts[acc_index].balance);
+        }
+        printf("\n");
     }
     printf("------------------------------------------------------------\n");
 }
+
 
 
 
