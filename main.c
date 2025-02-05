@@ -66,24 +66,34 @@ void add_customer() {
         return;
     }
 
+    int new_id;
+    printf("Enter unique ID number: ");
+    if (scanf("%d", &new_id) != 1) {
+        printf("Invalid ID input!\n");
+        while (getchar() != '\n'); // Clear buffer
+        return;
+    }
+    while (getchar() != '\n');
+
+    // Check if ID already exists
+    for (int i = 0; i < num_customers; i++) {
+        if (customers[i].id == new_id) {
+            printf("Error: A customer with ID %d already exists!\n", new_id);
+            return;
+        }
+    }
+
     printf("Enter first name: ");
     read_string(customers[num_customers].first_name, sizeof(customers[num_customers].first_name));
 
     printf("Enter last name: ");
     read_string(customers[num_customers].last_name, sizeof(customers[num_customers].last_name));
 
-    printf("Enter unique ID number: ");
-    if (scanf("%d", &customers[num_customers].id) != 1) {
-        printf("Invalid ID input!\n");
-        while (getchar() != '\n'); // ניקוי buffer
-        return;
-    }
-    while (getchar() != '\n');
-
+    customers[num_customers].id = new_id;
     customers[num_customers].num_accounts = 0;
     num_customers++;
 
-    printf("Customer added successfully! ID: %d\n", customers[num_customers - 1].id);
+    printf("Customer added successfully! ID: %d\n", new_id);
 }
 
 void create_account() {
