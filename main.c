@@ -1,49 +1,52 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #define MAX_CUSTOMERS 100
 #define MAX_ACCOUNTS 250
 #define MAX_TRANSACTIONS 750
+#define FIRST_NAME_SIZE 20
+#define LAST_NAME_SIZE 20
 
 // מבנה תאריך
-typedef struct {
+struct Date {
     int day, month, year;
-} Date;
+};
 
 // מבנה לקוח
-typedef struct {
-    char first_name[50];
-    char last_name[50];
-    char id[15];
+struct Customer {
+    char first_name[FIRST_NAME_SIZE];
+    char last_name[LAST_NAME_SIZE];
+    int id;
     int num_accounts;
     int accounts[MAX_ACCOUNTS];
-} Customer;
+};
 
 // מבנה חשבון בנק
-typedef struct {
+struct Transaction {
+    struct Date date;
+    double amount;
+    char description[50];
+    double balance_after;
+};
+
+struct BankAccount {
     int account_number;
-    char owner_id[15];
+    int owner_id;
     double balance;
     int num_transactions;
-    struct Transaction {
-        Date date;
-        double amount;
-        char description[50];
-        double balance_after;
-    } transactions[MAX_TRANSACTIONS];
-} BankAccount;
+    struct Transaction transactions[MAX_TRANSACTIONS];
+};
 
 // משתנים גלובליים
-Customer customers[MAX_CUSTOMERS];
-BankAccount accounts[MAX_ACCOUNTS];
+struct Customer customers[MAX_CUSTOMERS];
+struct BankAccount accounts[MAX_ACCOUNTS];
 int num_customers = 0;
 int num_accounts = 0;
 
 // יצירת תאריך
-Date create_date(int day, int month, int year) {
-    Date date = {day, month, year};
+struct Date create_date(int day, int month, int year) {
+    struct Date date = {day, month, year};
     return date;
 }
 
@@ -68,14 +71,18 @@ void add_customer() {
     read_string(customers[num_customers].last_name, sizeof(customers[num_customers].last_name));
 
     printf("Enter unique ID number: ");
-    read_string(customers[num_customers].id, sizeof(customers[num_customers].id));
+    if (scanf("%d", &customers[num_customers].id) != 1) {
+        printf("Invalid ID input!\n");
+        while (getchar() != '\n'); // ניקוי buffer
+        return;
+    }
+    while (getchar() != '\n');
 
     customers[num_customers].num_accounts = 0;
     num_customers++;
 
-    printf("Customer added successfully! ID: %s\n", customers[num_customers - 1].id);
+    printf("Customer added successfully! ID: %d\n", customers[num_customers - 1].id);
 }
-
 
 void create_account() {
     if (num_accounts >= MAX_ACCOUNTS) {
@@ -83,13 +90,18 @@ void create_account() {
         return;
     }
 
-    char owner_id[15];
+    int owner_id;
     printf("Enter customer ID: ");
-    read_string(owner_id, sizeof(owner_id));
+    if (scanf("%d", &owner_id) != 1) {
+        printf("Invalid ID input!\n");
+        while (getchar() != '\n');
+        return;
+    }
+    while (getchar() != '\n');
 
     int customer_index = -1;
     for (int i = 0; i < num_customers; i++) {
-        if (strcmp(customers[i].id, owner_id) == 0) {
+        if (customers[i].id == owner_id) {
             customer_index = i;
             break;
         }
@@ -105,81 +117,17 @@ void create_account() {
         return;
     }
 
-    // Create new bank account
     accounts[num_accounts].account_number = num_accounts + 1;
-    strcpy(accounts[num_accounts].owner_id, owner_id);
+    accounts[num_accounts].owner_id = owner_id;
     accounts[num_accounts].balance = 0;
     accounts[num_accounts].num_transactions = 0;
 
-    // Add account to the customer’s list of accounts
     customers[customer_index].accounts[customers[customer_index].num_accounts++] = num_accounts + 1;
     
     num_accounts++;
 
     printf("Bank account created successfully! Account number: %d\n", num_accounts);
 }
-
-void deposit() {
-    int account_number;
-    double amount;
-    char description[50];
-    int day, month, year;
-
-    printf("Enter account number: ");
-    if (scanf("%d", &account_number) != 1) {
-        printf("Invalid account number!\n");
-        while (getchar() != '\n');
-        return;
-    }
-    while (getchar() != '\n');
-
-    if (account_number < 1 || account_number > num_accounts) {
-        printf("Invalid account number!\n");
-        return;
-    }
-
-    BankAccount *acc = &accounts[account_number - 1];
-
-    // ספירת הפקדות בלבד
-    int deposit_count = 0;
-    for (int i = 0; i < acc->num_transactions; i++) {
-        if (acc->transactions[i].amount > 0) {
-            deposit_count++;
-        }
-    }
-    if (deposit_count >= 250) {
-        printf("Deposit limit reached! You cannot make more than 250 deposits.\n");
-        return;
-    }
-
-    printf("Enter amount to deposit: ");
-    if (scanf("%lf", &amount) != 1 || amount <= 0) {
-        printf("Invalid amount! Must be greater than zero.\n");
-        while (getchar() != '\n');
-        return;
-    }
-    while (getchar() != '\n');
-
-    printf("Enter description: ");
-    read_string(description, sizeof(description));
-
-    printf("Enter transaction date (DD MM YYYY): ");
-    if (scanf("%d %d %d", &day, &month, &year) != 3) {
-        printf("Invalid date input!\n");
-        while (getchar() != '\n');
-        return;
-    }
-
-    acc->balance += amount;
-    acc->transactions[acc->num_transactions].date = create_date(day, month, year);
-    acc->transactions[acc->num_transactions].amount = amount;
-    strcpy(acc->transactions[acc->num_transactions].description, description);
-    acc->transactions[acc->num_transactions].balance_after = acc->balance;
-    acc->num_transactions++;
-
-    printf("Deposit successful! New balance: %.2f\n", acc->balance);
-}
-
 
 void withdraw() {
     int account_number;
@@ -200,7 +148,7 @@ void withdraw() {
         return;
     }
 
-    BankAccount *acc = &accounts[account_number - 1];
+    struct BankAccount *acc = &accounts[account_number - 1];
 
     // ספירת משיכות בלבד
     int withdraw_count = 0;
@@ -248,6 +196,71 @@ void withdraw() {
 }
 
 
+void deposit() {
+    int account_number;
+    double amount;
+    char description[50];
+    int day, month, year;
+
+    printf("Enter account number: ");
+    if (scanf("%d", &account_number) != 1) {
+        printf("Invalid account number!\n");
+        while (getchar() != '\n');
+        return;
+    }
+    while (getchar() != '\n');
+
+    if (account_number < 1 || account_number > num_accounts) {
+        printf("Invalid account number!\n");
+        return;
+    }
+
+   struct BankAccount *acc = &accounts[account_number - 1];
+
+    // ספירת הפקדות בלבד
+    int deposit_count = 0;
+    for (int i = 0; i < acc->num_transactions; i++) {
+        if (acc->transactions[i].amount > 0) {
+            deposit_count++;
+        }
+    }
+    if (deposit_count >= 250) {
+        printf("Deposit limit reached! You cannot make more than 250 deposits.\n");
+        return;
+    }
+
+    printf("Enter amount to deposit: ");
+    if (scanf("%lf", &amount) != 1 || amount <= 0) {
+        printf("Invalid amount! Must be greater than zero.\n");
+        while (getchar() != '\n');
+        return;
+    }
+    while (getchar() != '\n');
+
+    printf("Enter description: ");
+    read_string(description, sizeof(description));
+
+    printf("Enter transaction date (DD MM YYYY): ");
+    if (scanf("%d %d %d", &day, &month, &year) != 3) {
+        printf("Invalid date input!\n");
+        while (getchar() != '\n');
+        return;
+    }
+
+    acc->balance += amount;
+    acc->transactions[acc->num_transactions].date = create_date(day, month, year);
+    acc->transactions[acc->num_transactions].amount = amount;
+    strcpy(acc->transactions[acc->num_transactions].description, description);
+    acc->transactions[acc->num_transactions].balance_after = acc->balance;
+    acc->num_transactions++;
+
+    printf("Deposit successful! New balance: %.2f\n", acc->balance);
+}
+
+
+
+
+
 void display_account_details() {
     int account_number;
 
@@ -264,11 +277,11 @@ void display_account_details() {
         return;
     }
 
-    BankAccount *acc = &accounts[account_number - 1];
+   struct BankAccount *acc = &accounts[account_number - 1];
 
     printf("\n--- Account Details ---\n");
     printf("Account Number: %d\n", acc->account_number);
-    printf("Owner ID: %s\n", acc->owner_id);
+    printf("Owner ID: %d\n", acc->owner_id);
     printf("Current Balance: %.2f\n", acc->balance);
     printf("Number of Transactions: %d\n", acc->num_transactions);
 
@@ -292,6 +305,8 @@ void display_account_details() {
 }
 
 
+
+
 void display_all_customers() {
     if (num_customers == 0) {
         printf("\nNo customers found in the system.\n");
@@ -303,7 +318,7 @@ void display_all_customers() {
     printf("------------------------------------------------------------\n");
 
     for (int i = 0; i < num_customers; i++) {
-        printf("%s %s\t\t%s\t\t%d\n",
+        printf("%s %s\t\t%d\t\t%d\n",
                customers[i].first_name,
                customers[i].last_name,
                customers[i].id,
@@ -313,24 +328,7 @@ void display_all_customers() {
 }
 
 
-void display_all_accounts() {
-    if (num_accounts == 0) {
-        printf("\nNo accounts found in the system.\n");
-        return;
-    }
 
-    printf("\n--- List of Bank Accounts ---\n");
-    printf("Account Number\tOwner ID\t\tBalance\n");
-    printf("------------------------------------------------------------\n");
-
-    for (int i = 0; i < num_accounts; i++) {
-        printf("%d\t\t%s\t\t%.2f\n",
-               accounts[i].account_number,
-               accounts[i].owner_id,
-               accounts[i].balance);
-    }
-    printf("------------------------------------------------------------\n");
-}
 
 
 void menu_display() {
@@ -341,11 +339,8 @@ void menu_display() {
     printf(" 4. Withdraw money\n");
     printf(" 5. View account details\n");
     printf(" 6. View all customers\n");
-    printf(" 7. View all accounts\n"); // אופציה חדשה
-    printf(" 8. Exit\n");
+    printf(" 7. Exit\n");
 }
-
-
 
 int main() {
     int user_choice;
@@ -357,10 +352,10 @@ int main() {
 
         if (scanf("%d", &user_choice) != 1) {
             printf("Invalid input! Please enter a number.\n");
-            while (getchar() != '\n'); // ניקוי buffer
+            while (getchar() != '\n');
             continue;
         }
-        while (getchar() != '\n'); // ניקוי buffer אחרי scanf
+        while (getchar() != '\n');
 
         switch (user_choice) {
             case 1:
@@ -382,14 +377,11 @@ int main() {
                 display_all_customers();
                 break;
             case 7:
-                display_all_accounts(); // קריאה לפונקציה החדשה
-                break;
-            case 8:
                 printf("Exiting the bank system. Goodbye!\n");
                 run = 0;
                 break;
             default:
-                printf("Invalid choice! Please enter a number between 1-8.\n");
+                printf("Invalid choice! Please enter a number between 1-7.\n");
         }
     }
     return 0;
