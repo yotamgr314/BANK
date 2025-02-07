@@ -207,11 +207,10 @@ void withdraw() {
     printf("Withdrawal successful! New balance: $%.2f\n", acc->balance);
 }
 
-
 void deposit() {
     int account_number;
     double amount;
-    char description[50];
+    char depositor_name[FIRST_NAME_SIZE + LAST_NAME_SIZE + 2]; // Name of depositor
     int day, month, year;
 
     printf("Enter account number: ");
@@ -229,7 +228,7 @@ void deposit() {
 
     struct BankAccount *acc = &accounts[account_number - 1];
 
-    // ספירת הפקדות
+    // Count deposits
     int deposit_count = 0;
     for (int i = 0; i < acc->num_transactions; i++) {
         if (acc->transactions[i].amount > 0) {
@@ -249,8 +248,8 @@ void deposit() {
     }
     while (getchar() != '\n');
 
-    printf("Enter description: ");
-    read_string(description, sizeof(description));
+    printf("Enter depositor's full name: ");
+    read_string(depositor_name, sizeof(depositor_name));  // Read full name
 
     printf("Enter transaction date (DD MM YYYY): ");
     if (scanf("%d %d %d", &day, &month, &year) != 3) {
@@ -262,11 +261,11 @@ void deposit() {
     acc->balance += amount;
     acc->transactions[acc->num_transactions].date = create_date(day, month, year);
     acc->transactions[acc->num_transactions].amount = amount;
-    strcpy(acc->transactions[acc->num_transactions].description, description);
+    strcpy(acc->transactions[acc->num_transactions].description, depositor_name); // Store name instead of description
     acc->transactions[acc->num_transactions].balance_after = acc->balance;
     acc->num_transactions++;
 
-    printf("Deposit successful! New balance: $%.2f\n", acc->balance);
+    printf("Deposit successful! $%.2f deposited by %s. New balance: $%.2f\n", amount, depositor_name, acc->balance);
 }
 
 
