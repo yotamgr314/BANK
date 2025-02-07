@@ -292,6 +292,25 @@ void display_account_details() {
 
     struct BankAccount *acc = &accounts[account_number - 1];
 
+    // מציאת שם הלקוח המתאים
+    char owner_name[FIRST_NAME_SIZE + LAST_NAME_SIZE + 2]; // +2 בשביל רווח ונול-טרמינציה
+    int found = 0;
+    for (int i = 0; i < num_customers; i++) {
+        if (customers[i].id == acc->owner_id) {
+            // שימוש ב-strcpy ו-strcat במקום snprintf/sprintf
+            strcpy(owner_name, customers[i].first_name);
+            strcat(owner_name, " ");
+            strcat(owner_name, customers[i].last_name);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Error: Customer not found for this account!\n");
+        return;
+    }
+
     printf("Enter start date (DD MM YYYY): ");
     if (scanf("%d %d %d", &start_date.day, &start_date.month, &start_date.year) != 3) {
         printf("Invalid date input!\n");
@@ -317,8 +336,8 @@ void display_account_details() {
     }
 
     printf("\n--- Account Statement ---\n");
+    printf("Account Holder: %s\n", owner_name); // הדפסת שם הלקוח במקום Owner ID
     printf("Account Number: %d\n", acc->account_number);
-    printf("Owner ID: %d\n", acc->owner_id);
     printf("Statement Period: %02d/%02d/%04d - %02d/%02d/%04d\n", 
            start_date.day, start_date.month, start_date.year, 
            end_date.day, end_date.month, end_date.year);
@@ -351,8 +370,6 @@ void display_account_details() {
     printf("--------------------------------------------------------------\n");
     printf("Closing Balance: $%.2f\n", current_balance);
 }
-
-
 
 
 
