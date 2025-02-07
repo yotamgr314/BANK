@@ -204,7 +204,7 @@ void withdraw() {
     acc->transactions[acc->num_transactions].balance_after = acc->balance;
     acc->num_transactions++;
 
-    printf("Withdrawal successful! New balance: %.2f\n", acc->balance);
+    printf("Withdrawal successful! New balance: $%.2f\n", acc->balance);
 }
 
 
@@ -266,7 +266,7 @@ void deposit() {
     acc->transactions[acc->num_transactions].balance_after = acc->balance;
     acc->num_transactions++;
 
-    printf("Deposit successful! New balance: %.2f\n", acc->balance);
+    printf("Deposit successful! New balance: $%.2f\n", acc->balance);
 }
 
 
@@ -322,7 +322,7 @@ void display_account_details() {
     printf("Statement Period: %02d/%02d/%04d - %02d/%02d/%04d\n", 
            start_date.day, start_date.month, start_date.year, 
            end_date.day, end_date.month, end_date.year);
-    printf("Opening Balance: %.2f\n", opening_balance);
+    printf("Opening Balance: $%.2f\n", opening_balance);
     printf("\nDate\t\tDeposits\tWithdrawals\tBalance After\n");
     printf("--------------------------------------------------------------\n");
 
@@ -341,15 +341,15 @@ void display_account_details() {
             current_balance = t->balance_after;
             printf("%02d/%02d/%04d\t", t->date.day, t->date.month, t->date.year);
             if (t->amount > 0) {
-                printf("%.2f\t\t-\t\t%.2f\n", t->amount, current_balance);
+                 printf("$%.2f\t\t-\t\t$%.2f\n", t->amount, current_balance);
             } else {
-                printf("-\t\t%.2f\t\t%.2f\n", -t->amount, current_balance);
+                 printf("-\t\t$%.2f\t\t$%.2f\n", -t->amount, current_balance);
             }
         }
     }
 
     printf("--------------------------------------------------------------\n");
-    printf("Closing Balance: %.2f\n", current_balance);
+    printf("Closing Balance: $%.2f\n", current_balance);
 }
 
 
@@ -363,18 +363,19 @@ void display_all_customers() {
     }
 
     printf("\n--- List of Bank Customers ---\n");
-    printf("Full Name\t\tID\t\tAccounts (Balance)\n");
-    printf("------------------------------------------------------------\n");
+    printf("%-20s %-15s %-30s\n", "Full Name", "Customer Id", "[Account ID: Balance]");
+    printf("-----------------------------------------------------------------------------------------\n");
 
     for (int i = 0; i < num_customers; i++) {
-        printf("%s %s\t\t%d\t\t", customers[i].first_name, customers[i].last_name, customers[i].id);
+        printf("%-20s %-15d ", customers[i].first_name, customers[i].id);
+        
         for (int j = 0; j < customers[i].num_accounts; j++) {
             int acc_index = customers[i].accounts[j] - 1;
-            printf("[%d: %.2f] ", accounts[acc_index].account_number, accounts[acc_index].balance);
+            printf("[%d: $%.2f] ", accounts[acc_index].account_number, accounts[acc_index].balance);
         }
         printf("\n");
     }
-    printf("------------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------------------\n");
 }
 
 
